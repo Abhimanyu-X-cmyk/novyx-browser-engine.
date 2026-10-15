@@ -1,0 +1,46 @@
+
+from html.parser import HTMLParser
+
+
+class NOVYXParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.elements = []
+        self.text_parts = []
+
+    def handle_starttag(self, tag, attrs):
+        self.elements.append(tag)
+
+    def handle_data(self, data):
+        text = data.strip()
+        if text:
+            self.text_parts.append(text)
+
+
+def main():
+    html = """
+    <html>
+      <body>
+        <h1>Welcome to NOVYX</h1>
+        <p>Our browser engine starts here.</p>
+      </body>
+    </html>
+    """
+
+    parser = NOVYXParser()
+    parser.feed(html)
+
+    print("=== NOVYX Browser Engine ===")
+    print("\nDetected HTML elements:")
+
+    for tag in parser.elements:
+        print(" -", tag)
+
+    print("\nExtracted page text:")
+
+    for text in parser.text_parts:
+        print(text)
+
+
+if __name__ == "__main__":
+    main()
