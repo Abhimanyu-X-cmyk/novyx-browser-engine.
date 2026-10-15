@@ -2,44 +2,62 @@
 from html.parser import HTMLParser
 
 
+class Element:
+    def __init__(self, tag, text=""):
+        self.tag = tag
+        self.text = text
+        self.children = []
+
+    def display(self, depth=0):
+        indent = "  " * depth
+        print(indent + self.tag)
+
+        if self.text.strip():
+            print(indent + "  " + self.text.strip())
+
+        for child in self.children:
+            child.display(depth + 1)
+
+
 class NOVYXParser(HTMLParser):
     def __init__(self):
         super().__init__()
-        self.elements = []
-        self.text_parts = []
+        self.root = Element("document")
+        self.stack = [self.root]
 
     def handle_starttag(self, tag, attrs):
-        self.elements.append(tag)
+        element = Element(tag)
+        self.stack[-1].children.append(element)
+        self.stack.append(element)
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.stack) - 1, 0, -1):
+            if self.stack[index].tag == tag:
+                self.stack = self.stack[:index]
+                break
 
     def handle_data(self, data):
-        text = data.strip()
-        if text:
-            self.text_parts.append(text)
+        if data.strip():
+            self.stack[-1].children.append(
+                Element("#text", data.strip())
+            )
 
 
 def main():
     html = """
     <html>
-      <body>
-        <h1>Welcome to NOVYX</h1>
-        <p>Our browser engine starts here.</p>
-      </body>
+        <body>
+            <h1>Welcome to NOVYX</h1>
+            <p>Our browser engine starts here.</p>
+        </body>
     </html>
     """
 
     parser = NOVYXParser()
     parser.feed(html)
 
-    print("=== NOVYX Browser Engine ===")
-    print("\nDetected HTML elements:")
-
-    for tag in parser.elements:
-        print(" -", tag)
-
-    print("\nExtracted page text:")
-
-    for text in parser.text_parts:
-        print(text)
+    print("=== NOVYX Document Tree ===")
+    parser.root.display()
 
 
 if __name__ == "__main__":
